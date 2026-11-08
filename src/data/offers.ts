@@ -477,8 +477,7 @@ export async function searchOffers(input: OfferSearchInput): Promise<{
       "AutoScout24 API",
       "Mobile.de",
       "Autobiz",
-      "DiscoverCars",
-      "Ayvens / Arval / Leasys",
+      "Otomoto / aggregatori B2B",
     ],
   };
 }

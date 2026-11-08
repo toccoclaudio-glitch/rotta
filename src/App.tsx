@@ -6,7 +6,6 @@ import {
   FUELS,
   matchingMarketplaces,
   type CountryCode,
-  type DealType,
   type SearchQuery,
 } from "./data/markets";
 import {
@@ -16,34 +15,27 @@ import {
   toEuro,
   type Offer,
 } from "./data/offers";
-import { DEFAULT_TCO, computeTco, eur, type TcoInput } from "./lib/tco";
+import {
+  DEFAULT_PURCHASE_COST,
+  computePurchaseCost,
+  eur,
+  type PurchaseCostInput,
+} from "./lib/tco";
 
 const DEFAULT_QUERY: SearchQuery = {
   dealType: "acquisto",
-  countries: ["IT", "DE", "FR", "ES"],
-  brand: "Volkswagen",
-  model: "Golf",
+  countries: ["IT", "DE", "FR", "ES", "BE", "NL"],
+  brand: "",
+  model: "",
   budgetMax: 30000,
   yearMin: 2020,
   fuel: "Tutti",
   maxKm: 100000,
 };
 
-const DEAL_LABEL: Record<DealType, string> = {
-  acquisto: "Acquisto",
-  noleggio: "Noleggio",
-  leasing: "Leasing",
-};
-
-const UNIT_HINT: Record<DealType, string> = {
-  acquisto: "Budget max (€)",
-  noleggio: "Tariffa max (€/giorno)",
-  leasing: "Rata max (€/mese)",
-};
-
 function loadShortlist(): Offer[] {
   try {
-    const raw = localStorage.getItem("rotta-shortlist");
+    const raw = localStorage.getItem("rotta-shortlist-acquisto");
     return raw ? (JSON.parse(raw) as Offer[]) : [];
   } catch {
     return [];
@@ -51,27 +43,32 @@ function loadShortlist(): Offer[] {
 }
 
 export default function App() {
+  const [clientName, setClientName] = useState("");
+  const [clientNote, setClientNote] = useState("");
   const [query, setQuery] = useState<SearchQuery>(DEFAULT_QUERY);
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [providers, setProviders] = useState<string[]>([]);
   const [shortlist, setShortlist] = useState<Offer[]>(() => loadShortlist());
-  const [tco, setTco] = useState<TcoInput>(DEFAULT_TCO);
+  const [cost, setCost] = useState<PurchaseCostInput>(DEFAULT_PURCHASE_COST);
 
-  const markets = useMemo(() => matchingMarketplaces(query), [query]);
-  const tcoResult = useMemo(() => computeTco(tco), [tco]);
+  const markets = useMemo(
+    () => matchingMarketplaces({ ...query, dealType: "acquisto" }),
+    [query],
+  );
+  const costResult = useMemo(() => computePurchaseCost(cost), [cost]);
 
   useEffect(() => {
-    localStorage.setItem("rotta-shortlist", JSON.stringify(shortlist));
+    localStorage.setItem("rotta-shortlist-acquisto", JSON.stringify(shortlist));
   }, [shortlist]);
 
   async function runSearch() {
     setLoading(true);
     setSearched(true);
-    const result = await searchOffers(query);
-    setOffers(result.offers);
-    setProviders(result.providerHint);
+    const result = await searchOffers({ ...query, dealType: "acquisto" });
+    setOffers(result.offers.filter((o) => o.dealType === "acquisto"));
+    setProviders(result.providerHint.filter((p) => !/DiscoverCars|Ayvens|Arval|Leasys/i.test(p)));
     setLoading(false);
     document.getElementById("risultati")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
@@ -91,28 +88,29 @@ export default function App() {
     });
   }
 
-  function applyOfferToTco(offer: Offer) {
-    if (offer.dealType === "acquisto") {
-      setTco((t) => ({ ...t, purchasePrice: Math.round(toEuro(offer.price, offer.currency)) }));
-    } else if (offer.dealType === "leasing") {
-      setTco((t) => ({ ...t, leaseMonthly: offer.price }));
-    } else {
-      setTco((t) => ({ ...t, rentDaily: offer.price }));
-    }
-    document.getElementById("confronto")?.scrollIntoView({ behavior: "smooth" });
+  function applyOfferToCost(offer: Offer) {
+    setCost((t) => ({
+      ...t,
+      purchasePrice: Math.round(toEuro(offer.price, offer.currency)),
+      importCost: offer.country === "IT" ? 0 : Math.max(800, Math.round(toEuro(offer.price, offer.currency) * 0.04)),
+    }));
+    document.getElementById("costi")?.scrollIntoView({ behavior: "smooth" });
   }
+
+  const requestLabel = [query.brand, query.model].filter(Boolean).join(" ") || "qualsiasi auto";
 
   return (
     <div className="app-shell">
       <header className="topbar">
         <a className="brand" href="#top">
           <span className="brand-mark">Rotta</span>
-          <span className="brand-tag">desk auto Europa</span>
+          <span className="brand-tag">acquisto Europa</span>
         </a>
         <nav className="nav-links">
-          <a href="#ricerca">Ricerca</a>
+          <a href="#brief">Brief cliente</a>
+          <a href="#risultati">Offerte</a>
           <a href="#mercati">Mercati</a>
-          <a href="#confronto">Confronto costi</a>
+          <a href="#costi">Costo possesso</a>
         </nav>
       </header>
 
@@ -123,7 +121,7 @@ export default function App() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
-          Broker desk
+          Solo acquisto
         </motion.p>
         <motion.h1
           initial={{ opacity: 0, y: 18 }}
@@ -137,8 +135,8 @@ export default function App() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.12 }}
         >
-          Trova e confronta le migliori offerte europee di acquisto, noleggio e leasing
-          in un solo desk operativo.
+          Desk per trovare le migliori auto in vendita in Europa, partendo dalle richieste
+          del cliente: qualsiasi marca e modello, confrontati tra più mercati.
         </motion.p>
         <motion.div
           className="cta-row"
@@ -146,55 +144,60 @@ export default function App() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.2 }}
         >
-          <a className="btn btn-primary" href="#ricerca">
-            Avvia ricerca
+          <a className="btn btn-primary" href="#brief">
+            Inserisci richiesta cliente
           </a>
-          <a className="btn btn-ghost" href="#confronto">
-            Confronta i costi
+          <a className="btn btn-ghost" href="#mercati">
+            Apri i marketplace
           </a>
         </motion.div>
       </section>
 
-      <section className="section" id="ricerca">
+      <section className="section" id="brief">
         <div className="section-head">
           <div>
-            <h2>Ricerca multi-mercato</h2>
+            <h2>Brief cliente</h2>
             <p>
-              Filtra per formula commerciale e paesi, poi apri i marketplace europei già
-              precompilati o lavora sulle offerte campione.
+              Inserisci cosa cerca il cliente. Rotta prepara i filtri e i link ai marketplace
+              europei per quella macchina.
             </p>
           </div>
         </div>
 
         <div className="search-panel">
-          <div className="deal-tabs">
-            {(Object.keys(DEAL_LABEL) as DealType[]).map((type) => (
-              <button
-                key={type}
-                type="button"
-                className={`deal-tab${query.dealType === type ? " active" : ""}`}
-                onClick={() => setQuery((q) => ({ ...q, dealType: type }))}
-              >
-                {DEAL_LABEL[type]}
-              </button>
-            ))}
-          </div>
-
           <div className="grid-fields">
             <div className="field">
+              <label htmlFor="client">Cliente</label>
+              <input
+                id="client"
+                value={clientName}
+                onChange={(e) => setClientName(e.target.value)}
+                placeholder="Nome o riferimento pratica"
+              />
+            </div>
+            <div className="field" style={{ gridColumn: "span 3" }}>
+              <label htmlFor="note">Note richiesta</label>
+              <input
+                id="note"
+                value={clientNote}
+                onChange={(e) => setClientNote(e.target.value)}
+                placeholder="es. automatica, tetto panoramico, un solo proprietario, consegna entro 30 gg"
+              />
+            </div>
+            <div className="field">
               <label htmlFor="brand">Marca</label>
-              <select
+              <input
                 id="brand"
+                list="brand-list"
                 value={query.brand}
                 onChange={(e) => setQuery((q) => ({ ...q, brand: e.target.value }))}
-              >
-                <option value="">Tutte</option>
+                placeholder="Qualsiasi — digita la marca"
+              />
+              <datalist id="brand-list">
                 {BRANDS.map((b) => (
-                  <option key={b} value={b}>
-                    {b}
-                  </option>
+                  <option key={b} value={b} />
                 ))}
-              </select>
+              </datalist>
             </div>
             <div className="field">
               <label htmlFor="model">Modello</label>
@@ -202,11 +205,11 @@ export default function App() {
                 id="model"
                 value={query.model}
                 onChange={(e) => setQuery((q) => ({ ...q, model: e.target.value }))}
-                placeholder="es. Golf, 308, ID.3"
+                placeholder="Qualsiasi — es. Golf, CX-5, Model Y"
               />
             </div>
             <div className="field">
-              <label htmlFor="budget">{UNIT_HINT[query.dealType]}</label>
+              <label htmlFor="budget">Budget max (€)</label>
               <input
                 id="budget"
                 type="number"
@@ -222,7 +225,7 @@ export default function App() {
               <input
                 id="year"
                 type="number"
-                min={2000}
+                min={1995}
                 max={2026}
                 value={query.yearMin || ""}
                 onChange={(e) =>
@@ -245,7 +248,7 @@ export default function App() {
               </select>
             </div>
             <div className="field">
-              <label htmlFor="km">Km max (acquisto)</label>
+              <label htmlFor="km">Km max</label>
               <input
                 id="km"
                 type="number"
@@ -259,7 +262,7 @@ export default function App() {
             </div>
           </div>
 
-          <div className="countries" aria-label="Paesi">
+          <div className="countries" aria-label="Paesi di ricerca">
             {COUNTRIES.map((c) => (
               <button
                 key={c.code}
@@ -274,17 +277,21 @@ export default function App() {
 
           <div className="search-actions">
             <p className="hint">
-              {markets.length} marketplace pronti · {query.countries.length || "tutti i"} paesi
-              selezionati
+              Richiesta: <strong style={{ color: "var(--ink)" }}>{requestLabel}</strong>
+              {clientName ? ` · ${clientName}` : ""} · {markets.length} marketplace ·{" "}
+              {query.countries.length || "tutti i"} paesi
             </p>
             <button type="button" className="btn btn-primary" onClick={runSearch} disabled={loading}>
-              {loading ? "Cerco…" : "Cerca offerte"}
+              {loading ? "Cerco…" : "Cerca in Europa"}
             </button>
           </div>
 
           <div className="banner-sample">
-            <strong>Dati campione.</strong> Le schede sotto sono sample per il workflow broker.
-            Per feed live collegheremo un provider: {providers.length ? providers.join(", ") : "AutoScout24, Mobile.de, Autobiz, DiscoverCars, Ayvens/Arval/Leasys"}.
+            <strong>Anteprima con dati campione.</strong> Oggi le schede sono sample per il
+            workflow. I marketplace sotto aprono ricerche reali. Feed live possibili con:{" "}
+            {providers.length
+              ? providers.join(", ")
+              : "AutoScout24 API, Mobile.de, Autobiz, Otomoto / aggregatori B2B"}.
           </div>
         </div>
       </section>
@@ -292,15 +299,19 @@ export default function App() {
       <section className="section" id="risultati">
         <div className="section-head">
           <div>
-            <h2>Offerte</h2>
-            <p>Ordinate per score Rotta (prezzo, km, completezza annuncio, competitività paese).</p>
+            <h2>Offerte in vendita</h2>
+            <p>
+              Confronta prezzi tra paesi. Per auto non presenti nei sample, usa i marketplace:
+              funzionano su qualsiasi marca/modello digitato.
+            </p>
           </div>
         </div>
 
         {searched && (
           <div className="results-meta">
-            <span>{loading ? "Aggiornamento…" : `${offers.length} risultati`}</span>
-            <span>Formula: {DEAL_LABEL[query.dealType]}</span>
+            <span>{loading ? "Aggiornamento…" : `${offers.length} risultati campione`}</span>
+            <span>Solo acquisto · {requestLabel}</span>
+            {clientNote && <span>Note: {clientNote}</span>}
           </div>
         )}
 
@@ -323,8 +334,7 @@ export default function App() {
                       <h3 className="offer-title">{offer.title}</h3>
                       <p className="offer-meta">
                         {offer.city}, {offer.country} · {offer.year} ·{" "}
-                        {offer.km ? `${offer.km.toLocaleString("it-IT")} km` : "nuovo"} ·{" "}
-                        {offer.fuel} · {offer.transmission}
+                        {offer.km.toLocaleString("it-IT")} km · {offer.fuel} · {offer.transmission}
                       </p>
                       <div className="tags">
                         <span className="tag">{offer.source}</span>
@@ -348,10 +358,10 @@ export default function App() {
                         Apri fonte
                       </a>
                       <button type="button" className="btn btn-ghost" onClick={() => toggleShortlist(offer)}>
-                        {saved ? "In shortlist" : "Salva"}
+                        {saved ? "In shortlist" : "Salva per cliente"}
                       </button>
-                      <button type="button" className="btn btn-primary" onClick={() => applyOfferToTco(offer)}>
-                        Usa nel TCO
+                      <button type="button" className="btn btn-primary" onClick={() => applyOfferToCost(offer)}>
+                        Stima costi
                       </button>
                     </div>
                   </motion.article>
@@ -360,12 +370,12 @@ export default function App() {
           </AnimatePresence>
           {searched && !loading && offers.length === 0 && (
             <p className="empty-inline">
-              Nessuna offerta campione con questi filtri. Allarga budget, anni o paesi, oppure apri i
-              marketplace sotto.
+              Nessun sample per questa richiesta. Digita marca/modello e apri i marketplace sotto:
+              lì la copertura è su tutto il parco auto europeo.
             </p>
           )}
           {!searched && (
-            <p className="empty-inline">Imposta i filtri e avvia la ricerca per vedere le offerte.</p>
+            <p className="empty-inline">Compila il brief e cerca per vedere le offerte campione.</p>
           )}
         </div>
       </section>
@@ -373,8 +383,11 @@ export default function App() {
       <section className="section" id="mercati">
         <div className="section-head">
           <div>
-            <h2>Marketplace europei</h2>
-            <p>Deep-link pronti con i tuoi filtri: aprili in parallelo mentre tratti l’affare.</p>
+            <h2>Marketplace di vendita</h2>
+            <p>
+              Qui c’è la copertura reale: link già filtrati sulla richiesta del cliente, aperti
+              sui portali europei di auto usate/nuove.
+            </p>
           </div>
         </div>
         <div className="markets-grid">
@@ -382,32 +395,36 @@ export default function App() {
             <a
               key={m.id}
               className="market-link"
-              href={m.buildUrl(query)}
+              href={m.buildUrl({ ...query, dealType: "acquisto" })}
               target="_blank"
               rel="noreferrer"
             >
               <strong>{m.name}</strong>
               <span>
-                {m.countries.filter((c) => query.countries.includes(c) || !query.countries.length).join(", ") ||
-                  m.countries.join(", ")}{" "}
-                · {m.dealTypes.map((d) => DEAL_LABEL[d]).join(" / ")}
+                {m.countries
+                  .filter((c) => query.countries.includes(c) || !query.countries.length)
+                  .join(", ") || m.countries.join(", ")}{" "}
+                · ricerca vendita
               </span>
             </a>
           ))}
         </div>
       </section>
 
-      <section className="section" id="confronto">
+      <section className="section" id="costi">
         <div className="section-head">
           <div>
-            <h2>Confronto costi</h2>
-            <p>Stima rapida acquisto vs leasing vs noleggio sullo stesso orizzonte di utilizzo.</p>
+            <h2>Costo di possesso</h2>
+            <p>
+              Stima deprezzamento, gestione e (se serve) import dall’estero, per presentare al
+              cliente il costo vero dell’acquisto.
+            </p>
           </div>
         </div>
 
         <div className="split-2">
           <div className="panel">
-            <h3>Parametri</h3>
+            <h3>Parametri acquisto</h3>
             <div className="tco-grid">
               {(
                 [
@@ -419,23 +436,18 @@ export default function App() {
                   ["insuranceYear", "Assicurazione / anno"],
                   ["taxYear", "Bollo / anno"],
                   ["maintenanceYear", "Manutenzione / anno"],
-                  ["leaseMonthly", "Leasing €/mese"],
-                  ["leaseMonths", "Mesi leasing"],
-                  ["leaseUpfront", "Anticipo leasing"],
-                  ["leaseIncludedKm", "Km inclusi / anno"],
-                  ["rentDaily", "Noleggio €/giorno"],
-                  ["rentDays", "Giorni noleggio"],
-                  ["rentExtrasDay", "Extra €/giorno"],
-                ] as Array<[keyof TcoInput, string]>
+                  ["importCost", "Import / trasporto"],
+                  ["paperwork", "Pratiche / passaggio"],
+                ] as Array<[keyof PurchaseCostInput, string]>
               ).map(([key, label]) => (
                 <div className="field" key={key}>
                   <label htmlFor={key}>{label}</label>
                   <input
                     id={key}
                     type="number"
-                    value={tco[key]}
+                    value={cost[key]}
                     onChange={(e) =>
-                      setTco((prev) => ({ ...prev, [key]: Number(e.target.value) || 0 }))
+                      setCost((prev) => ({ ...prev, [key]: Number(e.target.value) || 0 }))
                     }
                   />
                 </div>
@@ -444,40 +456,43 @@ export default function App() {
           </div>
 
           <div className="panel">
-            <h3>Esito sul tuo scenario</h3>
+            <h3>Sintesi per il cliente</h3>
             <div className="tco-result">
-              <div className={`metric${tcoResult.best === "acquisto" ? " best" : ""}`}>
-                <div className="label">Acquisto (costo netto periodo)</div>
-                <div className="value">{eur(tcoResult.purchaseTotal)}</div>
-                <div className="label">≈ {eur(tcoResult.purchaseMonthly)}/mese</div>
+              <div className="metric best">
+                <div className="label">Costo netto sul periodo</div>
+                <div className="value">{eur(costResult.total)}</div>
+                <div className="label">
+                  ≈ {eur(costResult.monthly)}/mese · {eur(costResult.costPerKm)}/km
+                </div>
               </div>
-              <div className={`metric${tcoResult.best === "leasing" ? " best" : ""}`}>
-                <div className="label">Leasing (totale contratto)</div>
-                <div className="value">{eur(tcoResult.leaseTotal)}</div>
-                <div className="label">≈ {eur(tcoResult.leaseMonthlyEffective)}/mese effettivi</div>
+              <div className="metric">
+                <div className="label">Deprezzamento</div>
+                <div className="value">{eur(costResult.depreciation)}</div>
               </div>
-              <div className={`metric${tcoResult.best === "noleggio" ? " best" : ""}`}>
-                <div className="label">Noleggio (periodo scelto)</div>
-                <div className="value">{eur(tcoResult.rentTotal)}</div>
-                <div className="label">≈ {eur(tcoResult.rentDailyEffective)}/giorno</div>
+              <div className="metric">
+                <div className="label">Gestione (carburante, bollo, ecc.)</div>
+                <div className="value">{eur(costResult.running)}</div>
               </div>
-              <div className="banner-sample">
-                <strong>Preferibile: {DEAL_LABEL[tcoResult.best]}.</strong>{" "}
-                {tcoResult.notes.join(" ")}
+              <div className="metric">
+                <div className="label">Import + pratiche</div>
+                <div className="value">{eur(costResult.extras)}</div>
               </div>
+              <div className="banner-sample">{costResult.notes.join(" ")}</div>
             </div>
 
-            <h3 style={{ marginTop: "1.25rem" }}>Shortlist</h3>
+            <h3 style={{ marginTop: "1.25rem" }}>
+              Shortlist{clientName ? ` · ${clientName}` : ""}
+            </h3>
             <div className="shortlist">
               {shortlist.length === 0 && (
-                <p className="empty-inline">Salva offerte dalla lista per confrontarle qui.</p>
+                <p className="empty-inline">Salva le migliori proposte da mostrare al cliente.</p>
               )}
               {shortlist.map((o) => (
                 <div className="short-item" key={o.id}>
                   <div>
                     <strong>{o.title}</strong>
                     <div className="offer-meta">
-                      {o.country} · {priceLabel(o)} · {DEAL_LABEL[o.dealType]}
+                      {o.country} · {priceLabel(o)}
                     </div>
                   </div>
                   <button type="button" onClick={() => toggleShortlist(o)}>
@@ -491,8 +506,8 @@ export default function App() {
       </section>
 
       <footer className="footer">
-        <span>Rotta — desk operativo per broker auto in Europa.</span>
-        <span>Sample data oggi · provider live quando scegli l’API.</span>
+        <span>Rotta — desk acquisto auto in Europa, guidato dalle richieste del cliente.</span>
+        <span>Noleggio e leasing esclusi in questa versione.</span>
       </footer>
     </div>
   );
