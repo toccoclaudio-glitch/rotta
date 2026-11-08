@@ -32,10 +32,13 @@ export interface SearchQuery {
   countries: CountryCode[];
   brand: string;
   model: string;
+  version: string;
   budgetMax: number;
   yearMin: number;
   fuel: string;
   maxKm: number;
+  colors: string[];
+  sunroof: boolean;
 }
 
 export const COUNTRIES: Country[] = [
@@ -65,6 +68,7 @@ export const BRANDS = [
   "Jeep",
   "Kia",
   "Lancia",
+  "Maserati",
   "Mazda",
   "Mercedes-Benz",
   "Mini",
@@ -84,10 +88,20 @@ export const BRANDS = [
 
 export const FUELS = ["Tutti", "Benzina", "Diesel", "Ibrido", "Elettrico", "GPL"] as const;
 
+export const COLOR_OPTIONS = [
+  "Nero",
+  "Grigio",
+  "Grigio opaco",
+  "Bianco",
+  "Blu",
+  "Argento",
+  "Rosso",
+] as const;
+
 const enc = encodeURIComponent;
 
 function brandQuery(q: SearchQuery) {
-  return [q.brand, q.model].filter(Boolean).join(" ").trim();
+  return [q.brand, q.model, q.version].filter(Boolean).join(" ").trim();
 }
 
 export const MARKETPLACES: Marketplace[] = [
@@ -106,26 +120,40 @@ export const MARKETPLACES: Marketplace[] = [
         BE: "B",
         AT: "A",
       };
-      const cy = q.countries.map((c) => cyMap[c]).filter(Boolean).join("%2C") || "D%2CI%2CF%2CE";
+      const cy = q.countries.map((c) => cyMap[c]).filter(Boolean).join(",") || "I,D,F,E";
       const host =
-        q.countries[0] === "IT"
-          ? "www.autoscout24.it"
-          : q.countries[0] === "DE"
-            ? "www.autoscout24.de"
+        q.countries[0] === "DE"
+          ? "www.autoscout24.de"
+          : q.countries.includes("IT") || !q.countries.length
+            ? "www.autoscout24.it"
             : "www.autoscout24.com";
+
+      // Path-style when brand/model known (better Modena filter)
+      const brandSlug = q.brand ? enc(q.brand.toLowerCase()) : "";
+      const modelSlug = q.model ? enc(q.model.toLowerCase()) : "";
+      const basePath =
+        brandSlug && modelSlug
+          ? `https://${host}/lst/${brandSlug}/${modelSlug}`
+          : `https://${host}/lst`;
+
       const params = new URLSearchParams({
         atype: "C",
-        cy: cy.replace(/%2C/g, ","),
+        cy,
         desc: "0",
         sort: "price",
         ustate: "N,U",
       });
-      if (q.brand) params.set("make", q.brand);
-      if (q.model) params.set("model", q.model);
+      if (q.version) params.set("search_text", q.version);
       if (q.budgetMax) params.set("priceto", String(q.budgetMax));
       if (q.yearMin) params.set("fregfrom", String(q.yearMin));
       if (q.maxKm) params.set("kmto", String(q.maxKm));
-      return `https://${host}/lst?${params.toString()}`;
+      if (q.sunroof) params.set("eq", "42"); // panoramic/sunroof equipment id often used
+      if (q.colors.includes("Nero")) params.append("bcol", "1");
+      if (q.colors.some((c) => c.startsWith("Grigio"))) params.append("bcol", "11");
+      if (q.version.toLowerCase().includes("modena") && brandSlug && modelSlug) {
+        return `${basePath}/ve_modena?${params.toString()}`;
+      }
+      return `${basePath}?${params.toString()}`;
     },
   },
   {
@@ -140,7 +168,7 @@ export const MARKETPLACES: Marketplace[] = [
         s: "Car",
         ref: "srp",
       });
-      if (q.brand) params.set("ms", q.brand);
+      if (q.brand) params.set("ms", `${q.brand};${q.model || ""}`);
       if (q.budgetMax) params.set("p", `:${q.budgetMax}`);
       if (q.yearMin) params.set("fr", `${q.yearMin}:`);
       if (q.maxKm) params.set("ml", `:${q.maxKm}`);
@@ -215,66 +243,6 @@ export const MARKETPLACES: Marketplace[] = [
       const qtext = brandQuery(q) || "carro";
       return `https://www.standvirtual.com/carros/?q=${enc(qtext)}&search%5Border%5D=filter_float_price%3Aasc`;
     },
-  },
-  {
-    id: "discovercars",
-    name: "DiscoverCars",
-    countries: ["IT", "DE", "FR", "ES", "NL", "BE", "AT", "PL", "PT", "SE"],
-    dealTypes: ["noleggio"],
-    buildUrl: (q) => {
-      const cityHint: Partial<Record<CountryCode, string>> = {
-        IT: "Milan",
-        DE: "Berlin",
-        FR: "Paris",
-        ES: "Madrid",
-        NL: "Amsterdam",
-        BE: "Brussels",
-        AT: "Vienna",
-        PL: "Warsaw",
-        PT: "Lisbon",
-        SE: "Stockholm",
-      };
-      const city = cityHint[q.countries[0] ?? "IT"] ?? "Milan";
-      return `https://www.discovercars.com/search?a_loc=${enc(city)}&q=${enc(brandQuery(q))}`;
-    },
-  },
-  {
-    id: "sixt",
-    name: "Sixt",
-    countries: ["IT", "DE", "FR", "ES", "NL", "BE", "AT", "PT", "SE"],
-    dealTypes: ["noleggio"],
-    buildUrl: (q) =>
-      `https://www.sixt.com/php/reservation?pos=it&car_brand=${enc(q.brand)}&car_model=${enc(q.model)}`,
-  },
-  {
-    id: "ayvens",
-    name: "Ayvens (LeasePlan)",
-    countries: ["IT", "DE", "FR", "ES", "NL", "BE", "AT", "PT", "SE", "PL"],
-    dealTypes: ["leasing"],
-    buildUrl: (q) =>
-      `https://www.ayvens.com/en-be/private-lease/?make=${enc(q.brand)}&model=${enc(q.model)}`,
-  },
-  {
-    id: "arval",
-    name: "Arval",
-    countries: ["IT", "DE", "FR", "ES", "NL", "BE", "AT", "PT", "PL"],
-    dealTypes: ["leasing"],
-    buildUrl: () => "https://www.arval.com/",
-  },
-  {
-    id: "alphabet",
-    name: "Alphabet Leasing",
-    countries: ["IT", "DE", "FR", "ES", "NL", "BE", "AT", "PT", "SE"],
-    dealTypes: ["leasing"],
-    buildUrl: () => "https://www.alphabet.com/",
-  },
-  {
-    id: "leasys",
-    name: "Leasys",
-    countries: ["IT", "FR", "ES", "DE", "BE", "NL", "PT"],
-    dealTypes: ["leasing", "noleggio"],
-    buildUrl: (q) =>
-      `https://www.leasys.com/it/privati?marca=${enc(q.brand)}&modello=${enc(q.model)}`,
   },
 ];
 

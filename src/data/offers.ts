@@ -1,16 +1,15 @@
 import type { CountryCode, DealType } from "./markets";
 
 /**
- * Data access boundary for live marketplace feeds.
- * Today: curated sample offers for broker workflow demos.
- * Tomorrow: swap `searchOffers` to call AutoScout24 / Mobile.de / Autobiz /
- * Arval / DiscoverCars (or a aggregator like Autobiz / carVertical B2B).
+ * Catalogo operativo per simulazioni broker.
+ * Le foto e i link puntano ad annunci AutoScout24 reali (snapshot di mercato).
  */
 export interface Offer {
   id: string;
   title: string;
   brand: string;
   model: string;
+  version: string;
   dealType: DealType;
   country: CountryCode;
   city: string;
@@ -18,394 +17,221 @@ export interface Offer {
   km: number;
   fuel: string;
   transmission: string;
+  color: string;
+  sunroof: boolean;
   price: number;
   priceUnit: "once" | "month" | "day";
   currency: "EUR" | "PLN" | "SEK";
   dealer: string;
   source: string;
   sourceUrl: string;
+  image: string;
+  gallery: string[];
   highlights: string[];
   score: number;
+  matchNote?: string;
 }
 
 export const SAMPLE_OFFERS: Offer[] = [
   {
-    id: "de-golf-1",
-    title: "Volkswagen Golf 1.5 TSI Life",
-    brand: "Volkswagen",
-    model: "Golf",
-    dealType: "acquisto",
-    country: "DE",
-    city: "Monaco di Baviera",
-    year: 2022,
-    km: 38400,
-    fuel: "Benzina",
-    transmission: "Manuale",
-    price: 21490,
-    priceUnit: "once",
-    currency: "EUR",
-    dealer: "Autohaus Süd GmbH",
-    source: "Mobile.de",
-    sourceUrl: "https://suchen.mobile.de/",
-    highlights: ["Unico proprietario", "Tagliandi VW", "IVA esposta"],
-    score: 92,
-  },
-  {
-    id: "it-golf-2",
-    title: "Volkswagen Golf 1.5 TSI Life",
-    brand: "Volkswagen",
-    model: "Golf",
+    id: "grecale-portogruaro",
+    title: "Maserati Grecale Modena 2.0 MHEV 330 CV",
+    brand: "Maserati",
+    model: "Grecale",
+    version: "Modena",
     dealType: "acquisto",
     country: "IT",
-    city: "Brescia",
+    city: "Portogruaro",
     year: 2022,
-    km: 41200,
-    fuel: "Benzina",
-    transmission: "Manuale",
-    price: 23900,
+    km: 51000,
+    fuel: "Ibrido",
+    transmission: "Automatico",
+    color: "Grigio",
+    sunroof: true,
+    price: 49000,
     priceUnit: "once",
     currency: "EUR",
-    dealer: "Auto Lombarda SpA",
+    dealer: "Privato / rivenditore Portogruaro",
     source: "AutoScout24",
-    sourceUrl: "https://www.autoscout24.it/",
-    highlights: ["Garanzia 12 mesi", "Pronto passaggio"],
+    sourceUrl:
+      "https://www.autoscout24.it/annunci/maserati-grecale-grecale-2-0-mhev-modena-330cv-auto-elettrica-benzina-grigio-cat_ma45mo76196-e455488b-7958-4ba2-8841-4889d3cf85a7",
+    image:
+      "https://prod.pictures.autoscout24.net/listing-images/e455488b-7958-4ba2-8841-4889d3cf85a7_b5203c74-418d-469a-9c14-c37ac99a50af.jpg/800x600.webp",
+    gallery: [
+      "https://prod.pictures.autoscout24.net/listing-images/e455488b-7958-4ba2-8841-4889d3cf85a7_b5203c74-418d-469a-9c14-c37ac99a50af.jpg/800x600.webp",
+      "https://prod.pictures.autoscout24.net/listing-images/e455488b-7958-4ba2-8841-4889d3cf85a7_7a21e278-85dd-4fe4-9f4d-47077dfeff24.jpg/800x600.webp",
+      "https://prod.pictures.autoscout24.net/listing-images/e455488b-7958-4ba2-8841-4889d3cf85a7_2b639008-cc83-4084-ae86-098462ed9cac.jpg/800x600.webp",
+      "https://prod.pictures.autoscout24.net/listing-images/e455488b-7958-4ba2-8841-4889d3cf85a7_72338962-5c1c-4c1c-a9f4-babdd7290ab3.jpg/800x600.webp",
+      "https://prod.pictures.autoscout24.net/listing-images/e455488b-7958-4ba2-8841-4889d3cf85a7_1a329349-8e71-442c-9bc7-96408532ac5f.jpg/800x600.webp",
+    ],
+    highlights: ["Tetto apribile", "Grigio", "Match brief"],
+    score: 96,
+    matchNote: "Allinea budget, km, colore e tetto.",
+  },
+  {
+    id: "grecale-calenzano",
+    title: "Maserati Grecale Modena MHEV 330 CV AWD",
+    brand: "Maserati",
+    model: "Grecale",
+    version: "Modena",
+    dealType: "acquisto",
+    country: "IT",
+    city: "Calenzano (FI)",
+    year: 2023,
+    km: 71615,
+    fuel: "Ibrido",
+    transmission: "Automatico",
+    color: "Grigio",
+    sunroof: true,
+    price: 49700,
+    priceUnit: "once",
+    currency: "EUR",
+    dealer: "Ammg Firenze Srl",
+    source: "AutoScout24",
+    sourceUrl:
+      "https://www.autoscout24.it/annunci/maserati-grecale-grecale-mhev-330-cv-awd-modena-278-elettrica-benzina-grigio-cat_ma45mo76196-21451fb1-822d-49f9-bfff-fbbbea7e301c",
+    image:
+      "https://prod.pictures.autoscout24.net/listing-images/21451fb1-822d-49f9-bfff-fbbbea7e301c_1edba056-02a7-41ff-bc6f-a7634999485b.jpg/800x600.webp",
+    gallery: [
+      "https://prod.pictures.autoscout24.net/listing-images/21451fb1-822d-49f9-bfff-fbbbea7e301c_1edba056-02a7-41ff-bc6f-a7634999485b.jpg/800x600.webp",
+      "https://prod.pictures.autoscout24.net/listing-images/21451fb1-822d-49f9-bfff-fbbbea7e301c_f6843bb1-231c-44c1-b937-2d24bb942561.jpg/800x600.webp",
+      "https://prod.pictures.autoscout24.net/listing-images/21451fb1-822d-49f9-bfff-fbbbea7e301c_2746c8e4-4524-43f8-8020-94385a9bbd3d.jpg/800x600.webp",
+      "https://prod.pictures.autoscout24.net/listing-images/21451fb1-822d-49f9-bfff-fbbbea7e301c_4b5a4193-d9b3-4cd9-a34a-4e362b25d9fc.jpg/800x600.webp",
+      "https://prod.pictures.autoscout24.net/listing-images/21451fb1-822d-49f9-bfff-fbbbea7e301c_209685fb-e1c8-4841-bb34-0b6e421dc0ac.jpg/800x600.webp",
+    ],
+    highlights: ["Tetto apribile", "Grigio", "2023"],
+    score: 93,
+    matchNote: "Dentro budget e km; colore e tetto ok.",
+  },
+  {
+    id: "grecale-modena-nero",
+    title: "Maserati Grecale Modena MHEV 330 CV AWD",
+    brand: "Maserati",
+    model: "Grecale",
+    version: "Modena",
+    dealType: "acquisto",
+    country: "IT",
+    city: "Modena",
+    year: 2022,
+    km: 49450,
+    fuel: "Ibrido",
+    transmission: "Automatico",
+    color: "Nero",
+    sunroof: false,
+    price: 47800,
+    priceUnit: "once",
+    currency: "EUR",
+    dealer: "Gruppo Autorama spa",
+    source: "AutoScout24",
+    sourceUrl:
+      "https://www.autoscout24.it/annunci/maserati-grecale-grecale-mhev-330-cv-awd-modena-elettrica-benzina-nero-cat_ma45mo76196-8d715906-b6b9-4c1e-93b6-d29027864c25",
+    image:
+      "https://prod.pictures.autoscout24.net/listing-images/8d715906-b6b9-4c1e-93b6-d29027864c25_37da8b05-0b0d-4216-92fc-51b7c8e9939b.jpg/800x600.webp",
+    gallery: [
+      "https://prod.pictures.autoscout24.net/listing-images/8d715906-b6b9-4c1e-93b6-d29027864c25_37da8b05-0b0d-4216-92fc-51b7c8e9939b.jpg/800x600.webp",
+      "https://prod.pictures.autoscout24.net/listing-images/8d715906-b6b9-4c1e-93b6-d29027864c25_957329bf-fe0d-4542-ba53-471cc9f16ec1.jpg/800x600.webp",
+      "https://prod.pictures.autoscout24.net/listing-images/8d715906-b6b9-4c1e-93b6-d29027864c25_9741c6af-4938-4062-8a41-63d60f534f44.jpg/800x600.webp",
+      "https://prod.pictures.autoscout24.net/listing-images/8d715906-b6b9-4c1e-93b6-d29027864c25_565b3430-8012-455d-8457-4c1cd9644a3b.jpg/800x600.webp",
+    ],
+    highlights: ["Nero", "Km ok", "Senza tetto in annuncio"],
     score: 78,
+    matchNote: "Colore e budget ok; tetto non dichiarato.",
   },
   {
-    id: "es-cupra-1",
-    title: "Cupra Formentor 1.5 TSI",
-    brand: "Cupra",
-    model: "Formentor",
-    dealType: "acquisto",
-    country: "ES",
-    city: "Valencia",
-    year: 2023,
-    km: 22100,
-    fuel: "Benzina",
-    transmission: "DSG",
-    price: 26990,
-    priceUnit: "once",
-    currency: "EUR",
-    dealer: "Motor Levante",
-    source: "Coches.net",
-    sourceUrl: "https://www.coches.net/",
-    highlights: ["Pack Winter", "Sensori 360"],
-    score: 88,
-  },
-  {
-    id: "fr-308-1",
-    title: "Peugeot 308 PureTech 130",
-    brand: "Peugeot",
-    model: "308",
-    dealType: "acquisto",
-    country: "FR",
-    city: "Lione",
-    year: 2021,
-    km: 55600,
-    fuel: "Benzina",
-    transmission: "Manuale",
-    price: 17950,
-    priceUnit: "once",
-    currency: "EUR",
-    dealer: "Garage Rhône",
-    source: "Leboncoin",
-    sourceUrl: "https://www.leboncoin.fr/",
-    highlights: ["Prezzo sotto media FR", "Controllo tecnico OK"],
-    score: 85,
-  },
-  {
-    id: "nl-id3-1",
-    title: "Volkswagen ID.3 Pro",
-    brand: "Volkswagen",
-    model: "ID.3",
-    dealType: "acquisto",
-    country: "NL",
-    city: "Utrecht",
-    year: 2023,
-    km: 18900,
-    fuel: "Elettrico",
-    transmission: "Automatico",
-    price: 27900,
-    priceUnit: "once",
-    currency: "EUR",
-    dealer: "EV Hub NL",
-    source: "AutoScout24",
-    sourceUrl: "https://www.autoscout24.nl/",
-    highlights: ["Batteria 58 kWh", "Incentivi locali verificabili"],
-    score: 90,
-  },
-  {
-    id: "pl-octavia-1",
-    title: "Skoda Octavia 2.0 TDI Style",
-    brand: "Skoda",
-    model: "Octavia",
-    dealType: "acquisto",
-    country: "PL",
-    city: "Cracovia",
-    year: 2022,
-    km: 61000,
-    fuel: "Diesel",
-    transmission: "DSG",
-    price: 89000,
-    priceUnit: "once",
-    currency: "PLN",
-    dealer: "Auto Galeria Kraków",
-    source: "Otomoto",
-    sourceUrl: "https://www.otomoto.pl/",
-    highlights: ["Conversione ~€20.7k", "Storico chiaro"],
-    score: 87,
-  },
-  {
-    id: "at-a4-1",
-    title: "Audi A4 Avant 40 TDI",
-    brand: "Audi",
-    model: "A4",
-    dealType: "acquisto",
-    country: "AT",
-    city: "Salisburgo",
-    year: 2021,
-    km: 72000,
-    fuel: "Diesel",
-    transmission: "S tronic",
-    price: 29800,
-    priceUnit: "once",
-    currency: "EUR",
-    dealer: "Audi Zentrum Salzburg",
-    source: "AutoScout24",
-    sourceUrl: "https://www.autoscout24.at/",
-    highlights: ["Virtual cockpit", "Traino preparato"],
-    score: 81,
-  },
-  {
-    id: "be-troc-1",
-    title: "Volkswagen T-Roc 1.5 TSI Style",
-    brand: "Volkswagen",
-    model: "T-Roc",
-    dealType: "acquisto",
-    country: "BE",
-    city: "Anversa",
-    year: 2022,
-    km: 33500,
-    fuel: "Benzina",
-    transmission: "DSG",
-    price: 25450,
-    priceUnit: "once",
-    currency: "EUR",
-    dealer: "Port Cars BE",
-    source: "AutoScout24",
-    sourceUrl: "https://www.autoscout24.be/",
-    highlights: ["Export-friendly", "IVA detraibile"],
-    score: 84,
-  },
-  {
-    id: "it-lease-ypsilon",
-    title: "Lancia Ypsilon Hybrid",
-    brand: "Lancia",
-    model: "Ypsilon",
-    dealType: "leasing",
-    country: "IT",
-    city: "Milano",
-    year: 2025,
-    km: 0,
-    fuel: "Ibrido",
-    transmission: "Manuale",
-    price: 199,
-    priceUnit: "month",
-    currency: "EUR",
-    dealer: "Leasys",
-    source: "Leasys",
-    sourceUrl: "https://www.leasys.com/",
-    highlights: ["36 mesi / 10.000 km", "Anticipo €2.500"],
-    score: 80,
-  },
-  {
-    id: "de-lease-id4",
-    title: "Volkswagen ID.4 Pro",
-    brand: "Volkswagen",
-    model: "ID.4",
-    dealType: "leasing",
-    country: "DE",
-    city: "Francoforte",
-    year: 2025,
-    km: 0,
-    fuel: "Elettrico",
-    transmission: "Automatico",
-    price: 389,
-    priceUnit: "month",
-    currency: "EUR",
-    dealer: "Ayvens Deutschland",
-    source: "Ayvens",
-    sourceUrl: "https://www.ayvens.com/",
-    highlights: ["48 mesi / 15.000 km", "Full service"],
-    score: 89,
-  },
-  {
-    id: "fr-lease-3008",
-    title: "Peugeot 3008 Hybrid",
-    brand: "Peugeot",
-    model: "3008",
-    dealType: "leasing",
-    country: "FR",
-    city: "Parigi",
-    year: 2025,
-    km: 0,
-    fuel: "Ibrido",
-    transmission: "Automatico",
-    price: 429,
-    priceUnit: "month",
-    currency: "EUR",
-    dealer: "Arval France",
-    source: "Arval",
-    sourceUrl: "https://www.arval.fr/",
-    highlights: ["LOA 37 mesi", "Manutenzione inclusa"],
-    score: 83,
-  },
-  {
-    id: "nl-lease-model3",
-    title: "Tesla Model 3 RWD",
-    brand: "Tesla",
-    model: "Model 3",
-    dealType: "leasing",
-    country: "NL",
-    city: "Amsterdam",
-    year: 2025,
-    km: 0,
-    fuel: "Elettrico",
-    transmission: "Automatico",
-    price: 499,
-    priceUnit: "month",
-    currency: "EUR",
-    dealer: "Alphabet NL",
-    source: "Alphabet",
-    sourceUrl: "https://www.alphabet.com/",
-    highlights: ["Private lease", "Assicurazione opzionale"],
-    score: 86,
-  },
-  {
-    id: "es-rent-ibiza",
-    title: "Seat Ibiza 1.0 TSI",
-    brand: "Seat",
-    model: "Ibiza",
-    dealType: "noleggio",
-    country: "ES",
-    city: "Barcellona",
-    year: 2024,
-    km: 12000,
-    fuel: "Benzina",
-    transmission: "Manuale",
-    price: 28,
-    priceUnit: "day",
-    currency: "EUR",
-    dealer: "DiscoverCars partner",
-    source: "DiscoverCars",
-    sourceUrl: "https://www.discovercars.com/",
-    highlights: ["7 giorni min.", "Chilometraggio illimitato"],
-    score: 82,
-  },
-  {
-    id: "it-rent-500e",
-    title: "Fiat 500e",
-    brand: "Fiat",
-    model: "500e",
-    dealType: "noleggio",
-    country: "IT",
-    city: "Roma Fiumicino",
-    year: 2024,
-    km: 8000,
-    fuel: "Elettrico",
-    transmission: "Automatico",
-    price: 39,
-    priceUnit: "day",
-    currency: "EUR",
-    dealer: "Sixt Italia",
-    source: "Sixt",
-    sourceUrl: "https://www.sixt.it/",
-    highlights: ["Aeroporto FCO", "Full-to-full"],
-    score: 84,
-  },
-  {
-    id: "de-rent-octavia",
-    title: "Skoda Octavia Wagon",
-    brand: "Skoda",
-    model: "Octavia",
-    dealType: "noleggio",
-    country: "DE",
-    city: "Berlino TXL area",
-    year: 2024,
-    km: 15000,
-    fuel: "Diesel",
-    transmission: "Automatico",
-    price: 45,
-    priceUnit: "day",
-    currency: "EUR",
-    dealer: "Sixt Deutschland",
-    source: "Sixt",
-    sourceUrl: "https://www.sixt.de/",
-    highlights: ["Ideale trasferte", "GPS incluso"],
-    score: 88,
-  },
-  {
-    id: "pt-rent-corolla",
-    title: "Toyota Corolla Hybrid",
-    brand: "Toyota",
-    model: "Corolla",
-    dealType: "noleggio",
-    country: "PT",
-    city: "Lisbona",
-    year: 2023,
-    km: 22000,
-    fuel: "Ibrido",
-    transmission: "Automatico",
-    price: 33,
-    priceUnit: "day",
-    currency: "EUR",
-    dealer: "Local partner",
-    source: "DiscoverCars",
-    sourceUrl: "https://www.discovercars.com/",
-    highlights: ["Basso consumo", "Assicurazione base"],
-    score: 79,
-  },
-  {
-    id: "se-acquisto-xc40",
-    title: "Volvo XC40 B3",
-    brand: "Volvo",
-    model: "XC40",
-    dealType: "acquisto",
-    country: "SE",
-    city: "Göteborg",
-    year: 2022,
-    km: 40500,
-    fuel: "Benzina",
-    transmission: "Automatico",
-    price: 289000,
-    priceUnit: "once",
-    currency: "SEK",
-    dealer: "Volvo Studio West",
-    source: "Blocket",
-    sourceUrl: "https://www.blocket.se/",
-    highlights: ["≈ €25.6k", "Pacchetto inverno"],
-    score: 83,
-  },
-  {
-    id: "it-acquisto-renegade",
-    title: "Jeep Renegade 1.6 Mjt",
-    brand: "Jeep",
-    model: "Renegade",
+    id: "grecale-alessandria-nero",
+    title: "Maserati Grecale Modena 2.0 MHEV 330 CV",
+    brand: "Maserati",
+    model: "Grecale",
+    version: "Modena",
     dealType: "acquisto",
     country: "IT",
-    city: "Torino",
-    year: 2020,
-    km: 78000,
-    fuel: "Diesel",
-    transmission: "Manuale",
-    price: 16900,
+    city: "Alessandria",
+    year: 2023,
+    km: 56000,
+    fuel: "Ibrido",
+    transmission: "Automatico",
+    color: "Nero",
+    sunroof: false,
+    price: 47500,
     priceUnit: "once",
     currency: "EUR",
-    dealer: "Privato verificato",
-    source: "Subito",
-    sourceUrl: "https://www.subito.it/",
-    highlights: ["Prezzo aggressivo", "Verificare carrozzeria"],
+    dealer: "Unicar Spa",
+    source: "AutoScout24",
+    sourceUrl:
+      "https://www.autoscout24.it/annunci/maserati-grecale-2-0-mhev-benzina-ibrida-4x4-modena-330cv-km-56-000-tagliandi-ufficiali-maserati-elettrica-benzina-nero-cat_ma45mo76196-499b9f56-c7a6-4c04-8179-2fc842936f7f",
+    image:
+      "https://prod.pictures.autoscout24.net/listing-images/499b9f56-c7a6-4c04-8179-2fc842936f7f_4c2eda2c-19a9-4129-9762-3a23327ce692.jpg/800x600.webp",
+    gallery: [
+      "https://prod.pictures.autoscout24.net/listing-images/499b9f56-c7a6-4c04-8179-2fc842936f7f_4c2eda2c-19a9-4129-9762-3a23327ce692.jpg/800x600.webp",
+      "https://prod.pictures.autoscout24.net/listing-images/499b9f56-c7a6-4c04-8179-2fc842936f7f_29205d1e-27de-4546-bdac-0bcb96346f10.jpg/800x600.webp",
+      "https://prod.pictures.autoscout24.net/listing-images/499b9f56-c7a6-4c04-8179-2fc842936f7f_9eb37fe0-2ea9-4849-af3c-f12e474e3477.jpg/800x600.webp",
+      "https://prod.pictures.autoscout24.net/listing-images/499b9f56-c7a6-4c04-8179-2fc842936f7f_cee3a749-aaa2-44ba-82c3-930d17bc8537.jpg/800x600.webp",
+    ],
+    highlights: ["Nero", "Tagliandi ufficiali", "Senza tetto in annuncio"],
+    score: 76,
+    matchNote: "Nero e km ok; manca tetto dichiarato.",
+  },
+  {
+    id: "grecale-castagnaro",
+    title: "Maserati Grecale Modena MHEV 330 CV AWD",
+    brand: "Maserati",
+    model: "Grecale",
+    version: "Modena",
+    dealType: "acquisto",
+    country: "IT",
+    city: "Castagnaro (VR)",
+    year: 2023,
+    km: 72518,
+    fuel: "Ibrido",
+    transmission: "Automatico",
+    color: "Grigio",
+    sunroof: false,
+    price: 45800,
+    priceUnit: "once",
+    currency: "EUR",
+    dealer: "Sordo Auto Srl",
+    source: "AutoScout24",
+    sourceUrl:
+      "https://www.autoscout24.it/annunci/maserati-grecale-mhev-330-cv-awd-modena-elettrica-benzina-grigio-cat_ma45mo76196-9a3050ce-ef63-400d-87a9-0dbfe45e4824",
+    image:
+      "https://prod.pictures.autoscout24.net/listing-images/9a3050ce-ef63-400d-87a9-0dbfe45e4824_cec2c3ab-b4f0-48ac-9f83-b15798cd48d0.jpg/800x600.webp",
+    gallery: [
+      "https://prod.pictures.autoscout24.net/listing-images/9a3050ce-ef63-400d-87a9-0dbfe45e4824_cec2c3ab-b4f0-48ac-9f83-b15798cd48d0.jpg/800x600.webp",
+    ],
+    highlights: ["Grigio", "Prezzo aggressivo", "Verificare tetto"],
     score: 74,
+    matchNote: "Grigio e budget ok; tetto da confermare col venditore.",
+  },
+  {
+    id: "grecale-roma-nero-lowkm",
+    title: "Maserati Grecale Modena 2.0 MHEV 330 CV",
+    brand: "Maserati",
+    model: "Grecale",
+    version: "Modena",
+    dealType: "acquisto",
+    country: "IT",
+    city: "Roma",
+    year: 2022,
+    km: 11780,
+    fuel: "Ibrido",
+    transmission: "Automatico",
+    color: "Nero",
+    sunroof: false,
+    price: 49900,
+    priceUnit: "once",
+    currency: "EUR",
+    dealer: "Auto In Roma Srl",
+    source: "AutoScout24",
+    sourceUrl:
+      "https://www.autoscout24.it/annunci/maserati-grecale-2-0-mhev-modena-330cv-auto-elettrica-benzina-nero-cat_ma45mo76196-eedc1020-89e5-4ccd-b364-8b64a5f38146",
+    image:
+      "https://prod.pictures.autoscout24.net/listing-images/eedc1020-89e5-4ccd-b364-8b64a5f38146_01b57985-c1c1-4ed3-9c45-c90cbc6a8b74.jpg/800x600.webp",
+    gallery: [
+      "https://prod.pictures.autoscout24.net/listing-images/eedc1020-89e5-4ccd-b364-8b64a5f38146_01b57985-c1c1-4ed3-9c45-c90cbc6a8b74.jpg/800x600.webp",
+    ],
+    highlights: ["Nero", "Pochissimi km", "Senza tetto in annuncio"],
+    score: 80,
+    matchNote: "Km eccellenti e nero; tetto non in scheda.",
   },
 ];
 
@@ -414,10 +240,13 @@ export interface OfferSearchInput {
   countries: CountryCode[];
   brand: string;
   model: string;
+  version?: string;
   budgetMax: number;
   yearMin: number;
   fuel: string;
   maxKm: number;
+  colors?: string[];
+  sunroof?: boolean;
 }
 
 const FX_TO_EUR: Record<Offer["currency"], number> = {
@@ -445,39 +274,45 @@ export function priceLabel(offer: Offer) {
   return base;
 }
 
-/** Replace this function body when wiring a live provider. */
+function colorMatches(offerColor: string, wanted: string[]) {
+  if (!wanted.length) return true;
+  const oc = offerColor.toLowerCase();
+  return wanted.some((w) => {
+    const ww = w.toLowerCase();
+    if (ww.includes("opaco")) return oc.includes("grigio") || oc.includes("opaco");
+    return oc.includes(ww.split(" ")[0]);
+  });
+}
+
+/** Motore ricerca locale (simulazione operativa). */
 export async function searchOffers(input: OfferSearchInput): Promise<{
   offers: Offer[];
-  mode: "sample";
+  mode: "catalog";
   providerHint: string[];
 }> {
-  await new Promise((r) => setTimeout(r, 420));
+  await new Promise((r) => setTimeout(r, 380));
 
   const offers = SAMPLE_OFFERS.filter((o) => {
     if (o.dealType !== input.dealType) return false;
     if (input.countries.length && !input.countries.includes(o.country)) return false;
     if (input.brand && !o.brand.toLowerCase().includes(input.brand.toLowerCase())) return false;
     if (input.model && !o.model.toLowerCase().includes(input.model.toLowerCase())) return false;
+    if (input.version && !o.version.toLowerCase().includes(input.version.toLowerCase())) return false;
     if (input.fuel && input.fuel !== "Tutti" && o.fuel !== input.fuel) return false;
     if (input.yearMin && o.year < input.yearMin) return false;
-    if (input.maxKm && o.km > input.maxKm && o.dealType === "acquisto") return false;
+    if (input.maxKm && o.km > input.maxKm) return false;
     if (input.budgetMax) {
       const euro = toEuro(o.price, o.currency);
       if (o.priceUnit === "once" && euro > input.budgetMax) return false;
-      if (o.priceUnit === "month" && o.price > input.budgetMax) return false;
-      if (o.priceUnit === "day" && o.price > input.budgetMax) return false;
     }
+    if (!colorMatches(o.color, input.colors ?? [])) return false;
+    if (input.sunroof && !o.sunroof) return false;
     return true;
   }).sort((a, b) => b.score - a.score);
 
   return {
     offers,
-    mode: "sample",
-    providerHint: [
-      "AutoScout24 API",
-      "Mobile.de",
-      "Autobiz",
-      "Otomoto / aggregatori B2B",
-    ],
+    mode: "catalog",
+    providerHint: ["AutoScout24", "Mobile.de", "Subito"],
   };
 }
