@@ -63,15 +63,24 @@ export default function App() {
     localStorage.setItem("rotta-shortlist-acquisto", JSON.stringify(shortlist));
   }, [shortlist]);
 
-  async function runSearch() {
+  async function runSearch(opts?: { scroll?: boolean; override?: SearchQuery }) {
+    const active = opts?.override ?? query;
     setLoading(true);
     setSearched(true);
-    const result = await searchOffers({ ...query, dealType: "acquisto" });
+    const result = await searchOffers({ ...active, dealType: "acquisto" });
     setOffers(result.offers.filter((o) => o.dealType === "acquisto"));
     setProviders(result.providerHint.filter((p) => !/DiscoverCars|Ayvens|Arval|Leasys/i.test(p)));
     setLoading(false);
-    document.getElementById("risultati")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (opts?.scroll !== false) {
+      document.getElementById("risultati")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   }
+
+  useEffect(() => {
+    void runSearch({ scroll: false, override: DEFAULT_QUERY });
+    // Prima apertura: mostra subito offerte campione sul brief di default.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function toggleCountry(code: CountryCode) {
     setQuery((q) => {
@@ -281,7 +290,12 @@ export default function App() {
               {clientName ? ` · ${clientName}` : ""} · {markets.length} marketplace ·{" "}
               {query.countries.length || "tutti i"} paesi
             </p>
-            <button type="button" className="btn btn-primary" onClick={runSearch} disabled={loading}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => void runSearch()}
+              disabled={loading}
+            >
               {loading ? "Cerco…" : "Cerca in Europa"}
             </button>
           </div>
